@@ -8,7 +8,6 @@ from .routers_auth import router as auth_router
 from .routers_messages import router as messages_router
 from .routers_demo import router as demo_router
 from .routers_threads import router as threads_router
-from .middleware import AuthMiddleware
 from fastapi import Depends
 from sqlalchemy.orm import Session
 from .database import get_db
@@ -18,7 +17,6 @@ from .models import User
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Messenger API")
-app.add_middleware(AuthMiddleware)
 
 app.add_middleware(
     CORSMiddleware,

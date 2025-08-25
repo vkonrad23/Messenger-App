@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json.schemastore.org/vscode-tasks.json",
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "docker: compose up",
+      "type": "shell",
+      "command": "docker compose up -d --build",
+      "problemMatcher": []
+    },
+    {
+      "label": "docker: compose down",
+      "type": "shell",
+      "command": "docker compose down -v",
+      "problemMatcher": []
+    },
+    {
+      "label": "backend: dev",
+      "type": "shell",
+      "options": { "cwd": "${workspaceFolder}/backend" },
+  "command": "powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -Command \"& { if (-not (Test-Path .venv)) { try { py -3.11 -m venv .venv } catch { python -m venv .venv } }; . .\\.venv\\Scripts\\Activate.ps1; if (Test-Path requirements-local.txt) { pip install -r requirements-local.txt } else { pip install -r requirements.txt }; $env:DATABASE_URL='sqlite:///./dev.db'; uvicorn app.main:app --reload --host 127.0.0.1 --port 8000 }\"",
+      "problemMatcher": []
+    },
+    {
+      "label": "frontend: dev",
+      "type": "shell",
+      "options": { "cwd": "${workspaceFolder}/frontend" },
+      "command": "powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -Command \"& { if (Test-Path package-lock.json) { npm ci } else { npm install }; $env:VITE_API_BASE='http://localhost:8000'; npm run dev }\"",
+      "problemMatcher": []
+    },
+    {
+      "label": "frontend: build",
+      "type": "shell",
+      "options": { "cwd": "${workspaceFolder}/frontend" },
+      "command": "npm run build",
+      "problemMatcher": []
+    }
+  ]
+}

@@ -10,6 +10,10 @@ PROTECTED_PREFIXES = ("/messages", "/me")
 
 class AuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next: Callable[[Request], Response]) -> Response:
+        # Always allow CORS preflight without auth
+        if request.method == "OPTIONS":
+            return await call_next(request)
+
         path = request.url.path
         need_auth = path.startswith(PROTECTED_PREFIXES)
         token = None

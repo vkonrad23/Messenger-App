@@ -11,6 +11,6 @@ class Settings(BaseModel):
     # Default to SQLite for local dev; Docker sets Postgres via .env
     DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./dev.db")
     BACKEND_CORS_ORIGINS: str = os.getenv("BACKEND_CORS_ORIGINS", "http://localhost:5173")
-    UPLOAD_DIR: str = os.getenv("UPLOAD_DIR", "/app/uploads")
+    UPLOAD_DIR: str = os.getenv("UPLOAD_DIR", "backend/uploads")
 
 settings = Settings()

@@ -71,22 +71,24 @@ export const Chat: React.FC<{ token: string, onLogout: () => void }> = ({ token,
       return
     }
 
-    setError(null)
-    const form = new FormData()
-    form.append('recipient_id', String(otherId))
-    if (content) form.append('content', content)
+    setError(null);
+    const form = new FormData();
+    form.append('recipient_id', String(otherId));
+    // Always append content, even if it's an empty string
+    form.append('content', content);
     if (filesRef.current?.files?.length) {
       for (const f of filesRef.current.files) {
-        form.append('files', f, f.name)
+        form.append('files', f, f.name);
       }
     }
     // Allow text-only or file-only messages; backend also validates non-empty
     try {
-      await api.post(`/messages`, form, { ...auth, headers: { ...auth.headers } })
+      // Pass the auth headers config directly for clarity
+      await api.post(`/messages`, form, auth);
     } catch (err: any) {
-      const detail = err?.response?.data?.detail
-      setError(typeof detail === 'string' ? detail : 'Failed to send the message')
-      return
+      const detail = err?.response?.data?.detail;
+      setError(typeof detail === 'string' ? detail : 'Failed to send the message');
+      return;
     }
     setContent('')
     if (filesRef.current) filesRef.current.value = ''
@@ -95,36 +97,22 @@ export const Chat: React.FC<{ token: string, onLogout: () => void }> = ({ token,
 
   const remove = async (id: number) => {
     // Optimistically remove from UI immediately
-    setMessages((prev) => prev.filter((msg) => msg.id !== id))
-    
+    setMessages((prev) => prev.filter((msg) => msg.id !== id));
     try {
-      const res = await fetch(`${API_BASE}/messages/${id}`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
-        },
-      })
-
-      if (!res.ok) {
-        // If delete failed, restore the message and show error
-        await fetchThread()
-        let detail: string | undefined
-        const text = await res.text()
-        try {
-          const data = JSON.parse(text) as { detail?: string }
-          detail = data?.detail
-        } catch {
-          detail = text
-        }
-        setError(detail || 'Error deleting message')
+      const res = await api.delete(`/messages/${id}`, auth);
+      if (res.status !== 204) {
+        // On failure, refetch to restore the message and show an error
+        fetchThread();
+        setError(res.data?.detail || 'Failed to delete message.');
       }
-    } catch (error) {
-      // On network error, restore messages and show error
-      await fetchThread()
-      console.error('Error deleting message', error)
-      setError('Error deleting message')
+      // On success, no further action is needed as the message is already gone from the UI.
+    } catch (err: any) {
+      // On network or other errors, refetch to restore the message
+      fetchThread();
+      const detail = err?.response?.data?.detail;
+      setError(detail || 'An error occurred while deleting the message.');
     }
-  }
+  };
 
   const edit = async (id: number) => {
     const newContent = prompt('New text:')
